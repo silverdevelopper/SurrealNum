@@ -1,3 +1,6 @@
 from .Surreal_num_utils import *
-class SurrealNumber:
+
+class NullSurrealNumber:
+    pass
+class SurrealNumber(NullSurrealNumber):
     pass
