@@ -1,4 +1,4 @@
-from .Surrel_num import SurrealShort
+from .Surrel_num import SurrealShort,Surreal_Finite
 a=SurrealShort()
 b=SurrealShort(a,)
 c=SurrealShort(None,b)

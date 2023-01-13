@@ -1,13 +1,15 @@
-from typing import List,Set
+from typing import List
+
 class Ordinal:
     def __init__(self, number:int = None):
         if number:
             self.value = number
         else:
-            self.value = Zero()
+            self.value = Surreal_Finite.SurrealZero
             
     def __repr__(self) -> str:
         return str(self.value)
+
 
 class SurrealShort:
     """
@@ -34,20 +36,21 @@ class SurrealShort:
     
     calculated_surreals = {}
     count = 10000
-    def __init__(self, left:'SurrealShort' = None, right:'SurrealShort' = None):
-        
-        if (isinstance(left,List) and left != {}) or isinstance(left,SurrealShort):
+    ϕ = []
+    
+    def __init__(self,name:str = "", left:'SurrealShort' = None, right:'SurrealShort' = None):
+        self.name = name
+        if (isinstance(left,List) and left != SurrealShort.ϕ ) or isinstance(left,SurrealShort):
             self.left:SurrealShort = left
         else:
-            self.left:SurrealShort = Zero()
+            self.left:SurrealShort = SurrealShort.ϕ 
             
-        if (isinstance(right,List) and left != {}) or isinstance(right,SurrealShort) :
+        if (isinstance(right,List) and left != SurrealShort.ϕ ) or isinstance(right,SurrealShort) :
             self.right:SurrealShort  = right
         else:
-            self.right:SurrealShort  = Zero()
-            
+            self.right:SurrealShort  = SurrealShort.ϕ 
         #self.is_valid()
-        self.h = hash(str(SurrealShort.count))
+        self.h = hash("{self.__repr()__}")
         SurrealShort.count += 1
         
     def calculate_ordinal(cls, val: 'SurrealShort'):
@@ -59,6 +62,7 @@ class SurrealShort:
         if not self.left <= self.right:
             return True
         return 0
+    
     def __neg__(self):
         self.left=-self.left if self.left != set() else set()
         self.right=-self.right if self.right != set() else set()
@@ -100,18 +104,28 @@ class SurrealShort:
             result = SurrealShort([[y + a for a in x.left] ,[x + b for b in y.left]],[[y + a for a in x.right], [x + b for b in y.right]] )        
         #raise TypeError("unsupported operand type(s) for +: 'SurrealNumber' and '{}'".format(type(y)._name_))
         return result
+    
     def __mul__(self,value: 'SurrealShort'):
         return SurrealShort((self.left*value+self*value.left+-self.left*value.left,self.right*value+self*value.right+self*value.right+-self.right*value.right),(self.left*value+self*value.right+-self.left*value.right,self.right*value+self*value.left+-self.right*value.left))
+    
     def __div__(self,value: 'SurrealShort'):
         raise NotImplementedError
 
     def __repr__(self):
-        return 'SurrealNumber(left={}, right={})'.format(self.left, self.right)
+        return 'SurrealNumber(left={} | right={})'.format(self.left, self.right)
     
     def __eq__(self, y):
-        if isinstance(y, SurrealShort):
-            return self.left == y.left and self.right == y.right
-        return False
+        if len(self.left) != len(y.left) or len(self.right) != len(y.right):
+            return False
+        for i,_ in enumerate(self.right):
+            if self.right[i] != y.right[i]:
+                return False
+        for i,_ in enumerate(self.left):
+            if self.left[i] != y.left[i]:
+                return False
+        return True
+            
+    
     def __lt__(self, y):
         if self.left and y.right:
             if not y <= self.left and not y.right <= self:
@@ -130,23 +144,24 @@ class SurrealShort:
             
         raise TypeError("unorderable types: SurrealShort() < {}()".format(type(y)._name_))
     
-class Zero(SurrealShort):
-    def __init__(self):
-        self.left = []
-        self.right = []
-        
-    def __repr__(self):
-        return 'SurrealNumber(left={Ø}, right={Ø})'
-
     
+class Surreal_Finite:
+    ϕ = []   
+    SurrealZero = SurrealShort("0", ϕ, ϕ ) 
+    SurrealOne  = SurrealShort("1", [ SurrealZero ], ϕ ) 
+    SurrealMinusOne  = SurrealShort("-1", ϕ, [ SurrealZero ] ) 
+    SurrealTwo  = SurrealShort("2", [SurrealOne], ϕ ) 
+    SurrealThree  = SurrealShort("3", [SurrealTwo], ϕ )  
+    SurrealMinusTwo  = SurrealShort("-2", ϕ, [SurrealOne] ) 
     
-a=SurrealShort()
+a=SurrealShort(left=[Surreal_Finite.SurrealZero])
 b=SurrealShort(left = a,right = None)
 c=SurrealShort(left= None,right= b)
 
 d = SurrealShort( left= [1,2,3],right= [2,3,4])
-e = SurrealShort( left= [0,1,2],right= [1,2,3])
-print(a)
+e = SurrealShort( left= [1,2,3],right= [2,3,4])
 print(b)
 print(c)
-print(d+e)
+print( SurrealShort() == Surreal_Finite.SurrealOne)
+print( SurrealShort() == Surreal_Finite.SurrealZero)
+print(d == e)
