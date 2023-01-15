@@ -1,19 +1,5 @@
-from Surreal_num_package.Surreal_num import SurrealShort
+from Surreal_num import *
 import unittest
-
-'''
-Tests check several rewriting rules for the logical optimization
-of relational algebra expressions.
-
-Tests assume that all relational algebra queries have been
-compiled from SQL queries by the canonical translation.
-Therefore, they use projection, selection, the cross product
-and the renaming operator only.
-'''
-
-'''
-Tests that selections are broken up correctly.
-'''
 
 class AdditionTest(unittest.TestCase):
     
@@ -21,23 +7,48 @@ class AdditionTest(unittest.TestCase):
         self.assertEqual(input, expected)
 
     def test_extend_1(self):
-        self._check("\select_{Person.gender = 'f' and Person.age = 16 and Person.name = 'Amy'} Person;",
-                    "\select_{Person.gender = 'f'} \select_{Person.age = 16} \select_{Person.name = 'Amy'} Person;")
+        self._check(None,None)
 
 class MultipicationTest(unittest.TestCase):
 
     def _check(self, input, expected):
         self.assertEqual(input, expected)
-
+    
     def test_extend_1(self):
-        self._check("\project_{E.pizza} (\select_{E.pizza = 'mushroom'} ((\\rename_{E: *} Eats) \cross Frequents));",
-                    "\project_{E.pizza} ((\select_{E.pizza = 'mushroom'} \\rename_{E: *}(Eats)) \cross Frequents);")
-
-    def test_extend_2(self):
-        self._check("\select_{E.pizza = 'mushroom'} ((\\rename_{E: *} Eats) \cross Frequents);",
-                    "(\select_{E.pizza = 'mushroom'} \\rename_{E: *}(Eats)) \cross Frequents;")
+        self._check(None,None)
+        
+class ComperaitonTest(unittest.TestCase):
+    
+    def _check(self, x, y):
+        self.assertEqual(x, y)
+    
+    def test_sureal_zeros(self):
+        self._check(SurrealShort(),Surreal_Finite.SurrealZero)
+    
+    def test_eq(self):
+        self._check(None,None)
+  
+class ComperaitonTest(unittest.TestCase):
+    def _check(self, x, y):
+        self.assertEqual(x <= y, True)
+              
+    def test_sureal_le(self):
+        self._check(SurrealShort(),Surreal_Finite.SurrealZero)
+        
+    def test_two_surreals(self):
+        self._check(None,None)
 
 
 
 if __name__ == '__main__':
     unittest.main()
+
+a=SurrealShort(left=[Surreal_Finite.SurrealZero])
+b=SurrealShort(left = a,right = None)
+c=SurrealShort(left= None,right= b)
+
+print(Surreal_Finite.SurrealOne)
+print( SurrealShort() ==  Surreal_Finite.SurrealOne )
+print( SurrealShort() ==  Surreal_Finite.SurrealThree )
+print( SurrealShort() ==  Surreal_Finite.SurrealZero )
+#print( Surreal_Converter.convert(2) ==  Surreal_Finite.SurrealTwo )
