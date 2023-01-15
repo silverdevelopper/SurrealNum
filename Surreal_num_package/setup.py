@@ -6,7 +6,7 @@ with open(os.path.join(os.path.dirname(__file__), "README.md")) as readme:
 
 setup(
     name="Surreal_number_package",
-    version="0.0.1",
+    version="0.0.2",
     author="Nurullah Gumus,Ali Erkut",
     author_email="gumus.mnur@outlook.com",
     description="Python package for operating over surreal numbers",
