@@ -1,5 +1,5 @@
 from typing import List
-
+import math
 
 class Surreal_Converter:
     @staticmethod
@@ -76,6 +76,14 @@ class SurrealShort:
         # self.is_valid()
         self.h = hash("{self.__repr()__}")
         SurrealShort.count += 1
+        #x=k/2n  (with k odd and n>0), just let xL=(k−1)/2n and xR=(k+1)/2n
+    def convert_Surreal(self):
+        if self==Surreal_Finite.SurrealZero:
+            return 0
+        elif not self.right==[] and self.left == []:
+            self.right.sort()
+            self.left.sort()
+            return math.sqrt((SurrealShort.convert_Surreal(self.right[0])*SurrealShort.convert_Surreal(self.right[-1])))+1/math.log(-1+math.sqrt(1-SurrealShort.convert_Surreal(self.right[0])/SurrealShort.convert_Surreal(self.right[-1])),2)
 
     def calculate_ordinal(cls, val: 'SurrealShort'):
         raise NotImplementedError
@@ -274,4 +282,4 @@ class Generator:
 # print(x.left,x.right)
 # print(y.left,y.right)
 # print(SurrealShort("1", [Surreal_Finite.SurrealTwo], [Surreal_Finite.SurrealMinusOne]).is_valid())
-print(Generator.generate_day(3))
+#print(Generator.generate_day(3))
