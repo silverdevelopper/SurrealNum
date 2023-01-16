@@ -6,9 +6,9 @@ with open(os.path.join(os.path.dirname(__file__), "README.md")) as readme:
 
 setup(
     name="Surreal_number_package",
-    version="0.0.1",
+    version="0.0.2",
     author="Nurullah Gumus,Ali Erkut",
-    author_email="gumus.mnur@outlook.com",
+    author_email="gumus.mnur@outlook.com,selmanerkurt2002@gmail.com",
     description="Python package for operating over surreal numbers",
     long_description="This package eveloped to make it easier to work on surreal numbers; aritmatic and logic operations over surreal numbers such as comparing, adding and multiplication functionality implemented.",
     long_description_content_type="text/markdown",
