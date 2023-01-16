@@ -77,13 +77,17 @@ class SurrealShort:
         self.h = hash("{self.__repr()__}")
         SurrealShort.count += 1
         #x=k/2n  (with k odd and n>0), just let xL=(k−1)/2n and xR=(k+1)/2n
-    def convert_Surreal(self):
+    def convert_to_rat(self):
         if self==Surreal_Finite.SurrealZero:
             return 0
-        elif not self.right==[] and self.left == []:
+        elif self.right and self.left :
             self.right.sort()
             self.left.sort()
-            return math.sqrt((SurrealShort.convert_Surreal(self.right[0])*SurrealShort.convert_Surreal(self.right[-1])))+1/math.log(-1+math.sqrt(1-SurrealShort.convert_Surreal(self.right[0])/SurrealShort.convert_Surreal(self.right[-1])),2)
+            return math.sqrt(SurrealShort.convert_to_rat(self.right[0])*SurrealShort.convert_to_rat(self.left[-1]))+1/(2/(SurrealShort.convert_to_rat(self.right[0])-SurrealShort.convert_to_rat(self.left[-1])))
+        elif not self.right:
+            return SurrealShort.convert_to_rat(self.left[0])+1
+        else:
+            return SurrealShort.convert_to_rat(self.right[-1])+1
 
     def calculate_ordinal(cls, val: 'SurrealShort'):
         raise NotImplementedError
@@ -134,15 +138,21 @@ class SurrealShort:
         raise NotImplementedError
 
     def __mul__(self, value: 'SurrealShort'):
-        return SurrealShort((self.left*value+self*value.left+-self.left*value.left, self.right*value+self*value.right+self*value.right+-self.right*value.right), (self.left*value+self*value.right+-self.left*value.right, self.right*value+self*value.left+-self.right*value.left))
+        if not value or not self:
+            pass
+        if value==Surreal_Finite.SurrealZero or self == Surreal_Finite.SurrealZero:
+            return Surreal_Finite.SurrealZero
+        #if self.left and value.left and self.right and value.right:
+        #return SurrealShort((self.left*value+self*value.left+-self.left*value.left, self.right*value+self*value.right+self*value.right+-self.right*value.right), (self.left*value+self*value.right+-self.left*value.right, self.right*value+self*value.left+-self.right*value.left))
+        return SurrealShort([a*value+self*c+-a*c for a in self.left for c in value.left].extend([b*value+self*d+self*d+-b*d for b in self.right for d in value.right]),[a*value+self*d+-a*d for a in self.left for d in value.right].extend([b*value+self*c+-b*c for b in self.right for c in value.left]))
 
     def __div__(self, value: 'SurrealShort'):
         raise NotImplementedError
 
     def __repr__(self):
         if self.name:
-            return f'SurrealNumber({self.name })'
-        return 'SurrealNumber(left={} | right={})'.format(self.left, self.right)
+            return f'SN({self.name })'
+        return 'SN({} | {})'.format(self.left, self.right)
 
     def __eq__(self, y):
         
@@ -169,7 +179,6 @@ class SurrealShort:
             return True
 
     def __le__(self, y):
-        result = True
         if self.left and y.right:
             for a in self.left:
                 for b in y.right:
@@ -190,7 +199,7 @@ class SurrealShort:
                 "unorderable types: SurrealShort() < {}()".format(type(y)._name_))
    
     def __lt__(self, y):
-        result = True
+        """
         if self.left and y.right:
             for a in self.left:
                 for b in y.right:
@@ -206,6 +215,10 @@ class SurrealShort:
                 if b < self:
                     return False
         return True
+        """
+        if self !=y:
+            return self<=y
+        return False
    
     def __gt__(self,y):
         return not(self <= y)
@@ -227,6 +240,8 @@ class Surreal_Finite:
     SurrealThree = SurrealShort("3", [SurrealTwo], ϕ)
     SurrealMinusTwo = SurrealShort("-2", ϕ, [SurrealMinusOne])
     SurrealMinusThree = SurrealShort("-3", ϕ, [SurrealMinusTwo])
+    SurrealOneHalf=SurrealShort("1/2",[SurrealZero],[SurrealOne])
+    SurrealMinusOneHalf=SurrealShort("1/2",[SurrealMinusOne],[SurrealZero])
       
 class Generator:
     days= {
@@ -282,4 +297,9 @@ class Generator:
 # print(x.left,x.right)
 # print(y.left,y.right)
 # print(SurrealShort("1", [Surreal_Finite.SurrealTwo], [Surreal_Finite.SurrealMinusOne]).is_valid())
-#print(Generator.generate_day(3))
+print(Generator.generate_day(0))
+print( Surreal_Converter.convert(122).convert_to_rat())
+print( Surreal_Finite.SurrealTwo.convert_to_rat())
+print( Surreal_Finite.SurrealMinusOneHalf.convert_to_rat())
+print( Surreal_Finite.SurrealOneHalf.convert_to_rat())
+print(Surreal_Finite.SurrealMinusOne*Surreal_Finite.SurrealOne)
