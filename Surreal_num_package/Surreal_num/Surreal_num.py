@@ -233,8 +233,8 @@ class Generator:
             nodes = []
             Generator.days[d+1] = []
             for i,s in enumerate(Generator.days[d]): # iterate days in list
-                l = SurrealShort(left=[],right = [s ])
-                r = SurrealShort(left=[],right = [s ])
+                l = SurrealShort(left=[s],right = [ ])
+                r = SurrealShort(left=[],right = [s])
                 
                 if l.is_valid():
                     Generator.days[d+1].append(l)
@@ -260,18 +260,3 @@ class Generator:
     def gen_day(day:int = 0):
         if day == 0:
             return Generator.days
-        
-
-# print( Surreal_Converter.convert(-2) ==  Surreal_Finite.SurrealMinusTwo )
-# print( Surreal_Converter.convert(-1) ==  Surreal_Finite.SurrealMinusOne )
-# print( Surreal_Finite.SurrealMinusOne  ==  Surreal_Finite.SurrealTwo )
-# print( Surreal_Converter.convert(1) <= Surreal_Finite.SurrealTwo )
-# print( Surreal_Converter.convert(1) >= Surreal_Finite.SurrealTwo )
-# print( SurrealShort() <= Surreal_Finite.SurrealZero )
-
-# x = Surreal_Converter.convert(-2)
-# y = Surreal_Finite.SurrealMinusTwo 
-# print(x.left,x.right)
-# print(y.left,y.right)
-# print(SurrealShort("1", [Surreal_Finite.SurrealTwo], [Surreal_Finite.SurrealMinusOne]).is_valid())
-print(Generator.generate_day(3))
