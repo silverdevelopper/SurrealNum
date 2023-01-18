@@ -299,7 +299,3 @@ class Generator:
         if day == 0:
             return Generator.days
         
-# print( Surreal_Converter.convert(-1).convert_to_rat())
-# #print( Surreal_Converter.convert(-3).convert_to_rat())
-# print(Generator.generate_day(2))
-# Generator.plot_generator()
