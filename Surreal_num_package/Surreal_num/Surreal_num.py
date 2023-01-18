@@ -1,6 +1,6 @@
 from typing import List
 import math
-
+from Surreal_num_utils import *
 class Surreal_Converter:
     @staticmethod
     def convert(val):
@@ -113,24 +113,16 @@ class SurrealShort:
                 else:
                     return False
         return result
-
     def __neg__(self):
-        self.left = [-x for x in self.right]
-        self.right = [-x for x in self.left]
+        if self.left == [] and self.right == []:
+            return self
+        left = [-x for x in self.right]
+        right = [-y for y in self.left]
+        return SurrealShort(left=left, right=right)
     def __sub__ (self,value:'SurrealShort'):
         return self+-value
     def __add__(self, y):
         x = self
-        """
-        Parameters
-        ----------
-        name : str
-            The name of the animal
-        sound : str
-            The sound the animal makes
-        num_legs : int, optional
-            The number of legs the animal (default is 4)
-        """
         if self == S_F.SurrealZero:
             result = y
         elif y == S_F.SurrealZero:
@@ -257,7 +249,8 @@ class Generator:
     }
     üsr_days={
         0 : [S_F.SurrealZero]
-    }
+    }    
+    edges = []
     @staticmethod
     def generate_day(day: int = 1):
         if day in Generator.days:
@@ -270,8 +263,15 @@ class Generator:
                 l = SurrealShort(left=[s ],right = [ ])
                 r = SurrealShort(left=[],right = [s ])
                 
+                
+        
+                nodes.append((str(S_F.SurrealZero),str(l) ) )
+                l.convert_to_rat()
                 Generator.days[d+1].append(l)
+                    
 
+                nodes.append((str(S_F.SurrealZero),str(r) ) )
+                r.convert_to_rat()
                 Generator.days[d+1].append(r)
                     
                 suureals_until_the_day = []
@@ -282,12 +282,18 @@ class Generator:
                     if j != i:
                         x = SurrealShort(left= [p] ,right = [s] )
                         if x.is_valid():
+                            x.convert_to_rat()
+                            nodes.append((str(p),str(s)))
                             Generator.days[d+1].append(x)
                             
                         x = SurrealShort(left= [s],right = [p] )
                         if x.is_valid():
+                            x.convert_to_rat()
+                            nodes.append((str(s),str(p)))
                             Generator.days[d+1].append(x)
+        Generator.edges = nodes
         return Generator.days
+    
     def üsr_day(day: int = 1):
         if day in Generator.üsr_days:
             return Generator.üsr_days
@@ -321,7 +327,13 @@ class Generator:
                         else :
                             Generator.üsr_days[-d-1].append(x)
         return Generator.üsr_days
-                 
+    def plot_generator():
+        plot_graph(Generator.edges)
+        
+    def gen_day(day:int = 0):
+        if day == 0:
+            return Generator.days
+        
     def gen_day(day:int = 0):
         if day == 0:
             return Generator.days
@@ -348,4 +360,5 @@ print( S_F.Üsreel.is_valid())
 print( S_F.Üsreel + S_F.MinÜsreel)
 #print(S_F.SurrealTwo*S_F.SurrealOne)
 print(Generator.üsr_day())
+print(Generator.generate_day(3))
 #print(S_F.SurrealMinusOne*S_F.SurrealOne)--yardım
