@@ -1,5 +1,6 @@
 from typing import List
 import math
+from Surreal_num_utils import *
 
 class Surreal_Converter:
     @staticmethod
@@ -18,7 +19,7 @@ class Surreal_Converter:
         elif value > 1:
             return SurrealShort(str(value), left=[Surreal_Converter.convert_int(value-1)], right=[])
         else:
-            return SurrealShort(str(value), left=[], right=[Surreal_Converter.convert_int(value+1)])
+            return SurrealShort(str(value),left=[],right=[Surreal_Converter.convert_int(value+1)])
 
     def convert_float(cls, value: float):
         return NotImplementedError
@@ -63,6 +64,7 @@ class SurrealShort:
     ϕ = []
 
     def __init__(self, name: str = None, left: list = [], right: list = []):
+        #self.name = name if name else self.convert_to_rat
         self.name = name
         if (isinstance(left, list) and left != SurrealShort.ϕ) or isinstance(left, SurrealShort):
             self.left = left
@@ -76,14 +78,22 @@ class SurrealShort:
         # self.is_valid()
         self.h = hash("{self.__repr()__}")
         SurrealShort.count += 1
-        #x=k/2n  (with k odd and n>0), just let xL=(k−1)/2n and xR=(k+1)/2n
-    def convert_Surreal(self):
+       
+    def convert_to_rat(self):
+        res = 0
         if self==Surreal_Finite.SurrealZero:
             return 0
-        elif not self.right==[] and self.left == []:
+        elif self.right and self.left :
             self.right.sort()
             self.left.sort()
-            return math.sqrt((SurrealShort.convert_Surreal(self.right[0])*SurrealShort.convert_Surreal(self.right[-1])))+1/math.log(-1+math.sqrt(1-SurrealShort.convert_Surreal(self.right[0])/SurrealShort.convert_Surreal(self.right[-1])),2)
+            res= math.sqrt(SurrealShort.convert_to_rat(self.right[0])*SurrealShort.convert_to_rat(self.left[-1]))
+            +1/(2/(SurrealShort.convert_to_rat(self.right[0])-SurrealShort.convert_to_rat(self.left[-1])))
+        elif not self.right:
+            res= int(SurrealShort.convert_to_rat(self.left[0])+1)
+        else:
+            res= int(SurrealShort.convert_to_rat(-self.right[-1])+1)
+        self.name = str(res)
+        return res
 
     def calculate_ordinal(cls, val: 'SurrealShort'):
         raise NotImplementedError
@@ -103,9 +113,14 @@ class SurrealShort:
         return result
 
     def __neg__(self):
-        self.left = [-x for x in self.right]
-        self.right = [-x for x in self.left]
-
+        if self.left == [] and self.right == []:
+            return self
+        left = [-x for x in self.right]
+        right = [-y for y in self.left]
+        return SurrealShort(left=left, right=right)
+        
+    def __sub__ (self,value:'SurrealShort'):
+        return self+-value
     def __add__(self, y):
         x = self
         """
@@ -126,43 +141,30 @@ class SurrealShort:
         elif isinstance(y, int):
             result = self + SurrealShort.convert_int(y)
         else:
-            result = SurrealShort([[y + a for a in x.left], [x + b for b in y.left]], [
-                                  [y + a for a in x.right], [x + b for b in y.right]])
+            result = SurrealShort([y + a for a in x.left].extend(x + b for b in y.left), 
+                                  [y + a for a in x.right].extend(x + b for b in y.right))
         return result
 
     def shorten(self):
         raise NotImplementedError
 
     def __mul__(self, value: 'SurrealShort'):
-        if not value or not self:
-            pass
-        if value == Surreal_Finite.SurrealZero or self == Surreal_Finite.SurrealZero:
-            return Surreal_Finite.SurrealZero
-        # if self.left and value.left and self.right and value.right:
-        # return SurrealShort((self.left*value+self*value.left+-self.left*value.left, self.right*value+self*value.right+self*value.right+-self.right*value.right), (self.left*value+self*value.right+-self.left*value.right, self.right*value+self*value.left+-self.right*value.left))
-        return SurrealShort(
-            [a*value+self*c+-a*c for a in self.left for c in value.left].extend([b*value+self*d+self*d+-b*d for b in self.right for d in value.right]), 
-            [a*value+self*d+-a*d for a in self.left for d in value.right].extend([b*value+self*c+-b*c for b in self.right for c in value.left]))
-
+        if self and value:
+        #return SurrealShort((self.left*value+self*value.left+-self.left*value.left, self.right*value+self*value.right+self*value.right+-self.right*value.right), (self.left*value+self*value.right+-self.left*value.right, self.right*value+self*value.left+-self.right*value.left))
+            return SurrealShort([a*value+self*c-a*c for a in self.left for c in value.left].extend([b*value+self*d+self*d-b*d for b in self.right for d in value.right]),[a*value+self*d-a*d for a in self.left for d in value.right].extend([b*value+self*c-b*c for b in self.right for c in value.left]))
+        return Surreal_Finite.SurrealZero
     def __div__(self, value: 'SurrealShort'):
         raise NotImplementedError
+    def __str__(self):
+        return self.__repr__()
 
     def __repr__(self):
         if self.name:
-            return f'SurrealNumber({self.name })'
-        return 'SurrealNumber(left={} | right={})'.format(self.left, self.right)
+            return f'SN({self.name })'
+        return 'SN({} | {})'.format(self.left, self.right)
 
     def __eq__(self, y):
-        '''if len(self.left) != len(y.left) or len(self.right) != len(y.right):
-            return False
-        for i,_ in enumerate(self.right):
-            if self.right[i] != y.right[i]:
-                return False
-        for i,_ in enumerate(self.left):
-            if self.left[i] != y.left[i]:
-                return False
-        return True'''
-
+        
         if self <= y and y <= self:
             return True
         return False
@@ -176,56 +178,56 @@ class SurrealShort:
             return True
 
     def __le__(self, y):
-        result = True
         if self.left and y.right:
             for a in self.left:
                 for b in y.right:
-                    if (y <= a and b <= self):
+                    if ( y <= a and b <= self):
                         return False
 
         elif self.left:
             for a in self.left:
-                if y <= a:
+                if  y <= a:
                     return False
         elif y.right:
             for b in y.right:
                 if b <= self:
                     return False
         return True
-
-        raise TypeError(
-            "unorderable types: SurrealShort() < {}()".format(type(y)._name_))
-
+    
+        raise TypeError("unorderable types: SurrealShort() < {}()".format(type(y)._name_))
+   
     def __lt__(self, y):
-        result = True
+        """
         if self.left and y.right:
             for a in self.left:
                 for b in y.right:
-                    if (y < a and b < self):
+                    if ( y < a and b < self):
                         return False
 
         elif self.left:
             for a in self.left:
-                if y < a:
+                if  y < a:
                     return False
         elif y.right:
             for b in y.right:
                 if b < self:
                     return False
         return True
-
-    def __gt__(self, y):
-        return not (self <= y)
-
-    def __ge__(self, y):
-        return not (self < y)
-
+        """
+        if self !=y:
+            return self<=y
+        return False
+   
+    def __gt__(self,y):
+        return not(self <= y)
+    
+    def __ge__(self,y):
+        return not(self < y)
 
 class Zero(SurrealShort):
     def __init__(self):
         self.left = []
         self.right = []
-
 
 class Surreal_Finite:
     ϕ = []
@@ -236,54 +238,68 @@ class Surreal_Finite:
     SurrealThree = SurrealShort("3", [SurrealTwo], ϕ)
     SurrealMinusTwo = SurrealShort("-2", ϕ, [SurrealMinusOne])
     SurrealMinusThree = SurrealShort("-3", ϕ, [SurrealMinusTwo])
-
-
+    SurrealOneHalf=SurrealShort("1/2",[SurrealZero],[SurrealOne])
+    SurrealMinusOneHalf=SurrealShort("1/2",[SurrealMinusOne],[SurrealZero])
+    Üsreel=SurrealShort("666",[SurrealOne],[SurrealZero])
+    MinÜsreel=SurrealShort("999",[SurrealZero],[SurrealMinusOne])
+      
 class Generator:
-    days = {
-        0: [Surreal_Finite.SurrealZero]
+    days= {
+        0 : [Surreal_Finite.SurrealZero]
     }
-
+    edges = []
     @staticmethod
     def generate_day(day: int = 1):
         if day in Generator.days:
             return Generator.days
-
-        for d in range(0, day, 1):
+        
+        for d in range(0,day,1):
             nodes = []
             Generator.days[d+1] = []
-            for i, s in enumerate(Generator.days[d]):  # iterate days in list
-                l = SurrealShort(left=[s], right=[])
-                r = SurrealShort(left=[], right=[s])
-
+            for i,s in enumerate(Generator.days[d]): # iterate days in list
+                l = SurrealShort(left=[s ],right = [ ])
+                r = SurrealShort(left=[],right = [s ])
+                
+                
                 if l.is_valid():
+                    nodes.append((str(Surreal_Finite.SurrealZero),str(l) ) )
+                    l.convert_to_rat()
                     Generator.days[d+1].append(l)
-
+                    
                 if r.is_valid():
+                    nodes.append((str(Surreal_Finite.SurrealZero),str(r) ) )
+                    r.convert_to_rat()
                     Generator.days[d+1].append(r)
-
+                    
                 suureals_until_the_day = []
                 for dd in range(d+1):
                     suureals_until_the_day += Generator.days[dd]
-
-                for j, p in enumerate(suureals_until_the_day):
+                    
+                for j,p in enumerate(suureals_until_the_day ):
                     if j != i:
-                        x = SurrealShort(left=[p], right=[s])
+                        x = SurrealShort(left= [p] ,right = [s] )
                         if x.is_valid():
+                            #x.convert_to_rat()
+                            nodes.append((str(p),str(s)))
                             Generator.days[d+1].append(x)
-
-                        x = SurrealShort(left=[s], right=[p])
+                            
+                        x = SurrealShort(left= [s],right = [p] )
                         if x.is_valid():
+                            #x.convert_to_rat()
+                            nodes.append((str(s),str(p)))
                             Generator.days[d+1].append(x)
+        Generator.edges = nodes
         return Generator.days
-
-    def gen_day(day: int = 0):
+    
+    @staticmethod
+    def plot_generator():
+        plot_graph(Generator.edges)
+        
+    def gen_day(day:int = 0):
         if day == 0:
             return Generator.days
-
-#print(Generator.generate_day(2))
-# x = Surreal_Converter.convert(-2)
-# y = Surreal_Finite.SurrealMinusTwo 
-# print(x.left,x.right)
-# print(y.left,y.right)
-# print(SurrealShort("1", [Surreal_Finite.SurrealTwo], [Surreal_Finite.SurrealMinusOne]).is_valid())
-#print(Generator.generate_day(3))
+        
+# print( Surreal_Converter.convert(-1).convert_to_rat())
+# #print( Surreal_Converter.convert(-3).convert_to_rat())
+# print(Generator.generate_day(2))
+# Generator.plot_generator()
