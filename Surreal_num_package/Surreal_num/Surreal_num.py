@@ -1,6 +1,6 @@
 from typing import List
 import math
-from Surreal_num_utils import *
+#from Surreal_num_utils import *
 class Surreal_Converter:
     @staticmethod
     def convert(val):
@@ -327,8 +327,8 @@ class Generator:
                         else :
                             Generator.üsr_days[-d-1].append(x)
         return Generator.üsr_days
-    def plot_generator():
-        plot_graph(Generator.edges)
+    #def plot_generator():
+    #    plot_graph(Generator.edges)
         
     def gen_day(day:int = 0):
         if day == 0:
@@ -361,4 +361,5 @@ print( S_F.Üsreel + S_F.MinÜsreel)
 #print(S_F.SurrealTwo*S_F.SurrealOne)
 print(Generator.üsr_day())
 print(Generator.generate_day(3))
+print(S_F.Üsreel*S_F.MinÜsreel)
 #print(S_F.SurrealMinusOne*S_F.SurrealOne)--yardım
