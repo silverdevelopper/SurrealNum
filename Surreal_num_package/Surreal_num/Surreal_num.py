@@ -146,10 +146,19 @@ class SurrealShort:
         raise NotImplementedError
 
     def __mul__(self, value: 'SurrealShort'):
-        if self and value:
+        if self == S_F.SurrealOne:
+            return value 
+        elif value == S_F.SurrealOne:
+            return self
+        elif self == S_F.SurrealMinusOne:
+            return -value
+        elif value == S_F.SurrealMinusOne:
+            return self
+        elif value == S_F.SurrealZero or self == S_F.SurrealZero:
+            return S_F.SurrealZero
+        else:
         #return SurrealShort((self.left*value+self*value.left+-self.left*value.left, self.right*value+self*value.right+self*value.right+-self.right*value.right), (self.left*value+self*value.right+-self.left*value.right, self.right*value+self*value.left+-self.right*value.left))
             return SurrealShort([a*value+self*c-a*c for a in self.left for c in value.left].extend([b*value+self*d+self*d-b*d for b in self.right for d in value.right]),[a*value+self*d-a*d for a in self.left for d in value.right].extend([b*value+self*c-b*c for b in self.right for c in value.left]))
-        return S_F.SurrealZero
     def __div__(self, value: 'SurrealShort'):
         raise NotImplementedError
 
@@ -199,7 +208,7 @@ class SurrealShort:
                     return False
         return True
     
-        raise TypeError("unorderable types: SurrealShort() < {}()".format(type(y)._name_))
+        #raise TypeError("unorderable types: SurrealShort() < {}()".format(type(y)._name_))
    
     def __lt__(self, y):
         """
@@ -246,7 +255,7 @@ class Generator:
     days= {
         0 : [S_F.SurrealZero]
     }
-    sür_days={
+    üsr_days={
         0 : [S_F.SurrealZero]
     }
     @staticmethod
@@ -279,37 +288,39 @@ class Generator:
                         if x.is_valid():
                             Generator.days[d+1].append(x)
         return Generator.days
-    def sür_day(day: int = 1):
-        if day in Generator.sür_days:
-            return Generator.sür_days
+    def üsr_day(day: int = 1):
+        if day in Generator.üsr_days:
+            return Generator.üsr_days
         
         for d in range(0,day,1):
-            Generator.sür_days[-d-1]=[]
-            Generator.sür_days[d+1] = []
-            for i,s in enumerate(Generator.sür_days[d]): # iterate sür_days in list
+            Generator.üsr_days[-d-1]=[]
+            Generator.üsr_days[d+1] = []
+            for i,s in enumerate(Generator.üsr_days[d]): # iterate üsr_days in list
                 l = SurrealShort(left=[s ],right = [ ])
                 r = SurrealShort(left=[],right = [s ])
-                Generator.sür_days[d+1].append(l)
-                Generator.sür_days[d+1].append(r)
+                Generator.üsr_days[d+1].append(l)
+                Generator.üsr_days[d+1].append(r)
                     
                 suureals_until_the_day = []
                 for dd in range(d+1):
-                    suureals_until_the_day += Generator.sür_days[dd]
+                    suureals_until_the_day += Generator.üsr_days[dd]
                     
                 for j,p in enumerate(suureals_until_the_day):
                     if j != i:
+                        if p == -s or p==s:
+                            pass
                         x = SurrealShort(left= [p] ,right = [s] )
                         if x.is_valid():
-                            Generator.sür_days[d+1].append(x)
-                        elif not x.left == x.right :
-                            Generator.sür_days[-d-1].append(x)
+                            Generator.üsr_days[d+1].append(x)
+                        else:
+                            Generator.üsr_days[-d-1].append(x)
                             
                         x = SurrealShort(left= [s],right = [p] )
                         if x.is_valid():
-                            Generator.sür_days[d+1].append(x)
-                        elif not x.left ==x.right :
-                            Generator.sür_days[-d-1].append(x)
-        return Generator.sür_days
+                            Generator.üsr_days[d+1].append(x)
+                        else :
+                            Generator.üsr_days[-d-1].append(x)
+        return Generator.üsr_days
                  
     def gen_day(day:int = 0):
         if day == 0:
@@ -336,5 +347,5 @@ print( S_F.SurrealOneHalf.convert_to_rat())
 print( S_F.Üsreel.is_valid())
 print( S_F.Üsreel + S_F.MinÜsreel)
 #print(S_F.SurrealTwo*S_F.SurrealOne)
-print(Generator.sür_day())
+print(Generator.üsr_day())
 #print(S_F.SurrealMinusOne*S_F.SurrealOne)--yardım
