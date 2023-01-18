@@ -18,7 +18,7 @@ class Surreal_Converter:
         elif value > 1:
             return SurrealShort(str(value), left=[Surreal_Converter.convert_int(value-1)], right=[])
         else:
-            return SurrealShort(str(value),left=[],right=[Surreal_Converter.convert_int(value+1)])
+            return SurrealShort(str(value), left=[], right=[Surreal_Converter.convert_int(value+1)])
 
     def convert_float(cls, value: float):
         return NotImplementedError
@@ -126,7 +126,15 @@ class SurrealShort:
         raise NotImplementedError
 
     def __mul__(self, value: 'SurrealShort'):
-        return SurrealShort((self.left*value+self*value.left+-self.left*value.left, self.right*value+self*value.right+self*value.right+-self.right*value.right), (self.left*value+self*value.right+-self.left*value.right, self.right*value+self*value.left+-self.right*value.left))
+        if not value or not self:
+            pass
+        if value == Surreal_Finite.SurrealZero or self == Surreal_Finite.SurrealZero:
+            return Surreal_Finite.SurrealZero
+        # if self.left and value.left and self.right and value.right:
+        # return SurrealShort((self.left*value+self*value.left+-self.left*value.left, self.right*value+self*value.right+self*value.right+-self.right*value.right), (self.left*value+self*value.right+-self.left*value.right, self.right*value+self*value.left+-self.right*value.left))
+        return SurrealShort(
+            [a*value+self*c+-a*c for a in self.left for c in value.left].extend([b*value+self*d+self*d+-b*d for b in self.right for d in value.right]), 
+            [a*value+self*d+-a*d for a in self.left for d in value.right].extend([b*value+self*c+-b*c for b in self.right for c in value.left]))
 
     def __div__(self, value: 'SurrealShort'):
         raise NotImplementedError
@@ -137,7 +145,6 @@ class SurrealShort:
         return 'SurrealNumber(left={} | right={})'.format(self.left, self.right)
 
     def __eq__(self, y):
-        
         '''if len(self.left) != len(y.left) or len(self.right) != len(y.right):
             return False
         for i,_ in enumerate(self.right):
@@ -147,7 +154,7 @@ class SurrealShort:
             if self.left[i] != y.left[i]:
                 return False
         return True'''
-       
+
         if self <= y and y <= self:
             return True
         return False
@@ -165,50 +172,52 @@ class SurrealShort:
         if self.left and y.right:
             for a in self.left:
                 for b in y.right:
-                    if ( y <= a and b <= self):
+                    if (y <= a and b <= self):
                         return False
 
         elif self.left:
             for a in self.left:
-                if  y <= a:
+                if y <= a:
                     return False
         elif y.right:
             for b in y.right:
                 if b <= self:
                     return False
         return True
-    
+
         raise TypeError(
-                "unorderable types: SurrealShort() < {}()".format(type(y)._name_))
-   
+            "unorderable types: SurrealShort() < {}()".format(type(y)._name_))
+
     def __lt__(self, y):
         result = True
         if self.left and y.right:
             for a in self.left:
                 for b in y.right:
-                    if ( y < a and b < self):
+                    if (y < a and b < self):
                         return False
 
         elif self.left:
             for a in self.left:
-                if  y < a:
+                if y < a:
                     return False
         elif y.right:
             for b in y.right:
                 if b < self:
                     return False
         return True
-   
-    def __gt__(self,y):
-        return not(self <= y)
-    
-    def __ge__(self,y):
-        return not(self < y)
+
+    def __gt__(self, y):
+        return not (self <= y)
+
+    def __ge__(self, y):
+        return not (self < y)
+
 
 class Zero(SurrealShort):
     def __init__(self):
         self.left = []
         self.right = []
+
 
 class Surreal_Finite:
     ϕ = []
@@ -219,44 +228,48 @@ class Surreal_Finite:
     SurrealThree = SurrealShort("3", [SurrealTwo], ϕ)
     SurrealMinusTwo = SurrealShort("-2", ϕ, [SurrealMinusOne])
     SurrealMinusThree = SurrealShort("-3", ϕ, [SurrealMinusTwo])
-      
+
+
 class Generator:
-    days= {
-        0 : [Surreal_Finite.SurrealZero]
+    days = {
+        0: [Surreal_Finite.SurrealZero]
     }
+
     @staticmethod
     def generate_day(day: int = 1):
         if day in Generator.days:
             return Generator.days
-        
-        for d in range(0,day,1):
+
+        for d in range(0, day, 1):
             nodes = []
             Generator.days[d+1] = []
-            for i,s in enumerate(Generator.days[d]): # iterate days in list
-                l = SurrealShort(left=[s],right = [ ])
-                r = SurrealShort(left=[],right = [s])
-                
+            for i, s in enumerate(Generator.days[d]):  # iterate days in list
+                l = SurrealShort(left=[s], right=[])
+                r = SurrealShort(left=[], right=[s])
+
                 if l.is_valid():
                     Generator.days[d+1].append(l)
-                    
+
                 if r.is_valid():
                     Generator.days[d+1].append(r)
-                    
+
                 suureals_until_the_day = []
                 for dd in range(d+1):
                     suureals_until_the_day += Generator.days[dd]
-                    
-                for j,p in enumerate(suureals_until_the_day ):
+
+                for j, p in enumerate(suureals_until_the_day):
                     if j != i:
-                        x = SurrealShort(left= [p] ,right = [s] )
+                        x = SurrealShort(left=[p], right=[s])
                         if x.is_valid():
                             Generator.days[d+1].append(x)
-                            
-                        x = SurrealShort(left= [s],right = [p] )
+
+                        x = SurrealShort(left=[s], right=[p])
                         if x.is_valid():
                             Generator.days[d+1].append(x)
         return Generator.days
-                 
-    def gen_day(day:int = 0):
+
+    def gen_day(day: int = 0):
         if day == 0:
             return Generator.days
+
+print(Generator.generate_day(2))
