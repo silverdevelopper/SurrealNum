@@ -130,8 +130,8 @@ class SurrealShort:
         elif isinstance(y, int):
             result = self + SurrealShort.convert_int(y)
         else:
-            result = SurrealShort([y + a for a in x.left].extend(x + b for b in y.left), 
-                                  [y + a for a in x.right].extend(x + b for b in y.right))
+            result = SurrealShort([y + a for a in x.left].extend([x + b for b in y.left]), 
+                                  [y + a for a in x.right].extend([x + b for b in y.right]))
         return result
 
     def shorten(self):
@@ -145,7 +145,7 @@ class SurrealShort:
         elif self == S_F.SurrealMinusOne:
             return -value
         elif value == S_F.SurrealMinusOne:
-            return self
+            return -self
         elif value == S_F.SurrealZero or self == S_F.SurrealZero:
             return S_F.SurrealZero
         else:
@@ -359,7 +359,9 @@ print( S_F.SurrealOneHalf.convert_to_rat())
 print( S_F.Üsreel.is_valid())
 print( S_F.Üsreel + S_F.MinÜsreel)
 #print(S_F.SurrealTwo*S_F.SurrealOne)
-print(Generator.üsr_day())
-print(Generator.generate_day(3))
+#print(Generator.üsr_day())
+#print(Generator.generate_day(3))
 print(S_F.Üsreel*S_F.MinÜsreel)
+print(S_F.SurrealOne*S_F.SurrealTwo)
+print(S_F.Üsreel+S_F.MinÜsreel)
 #print(S_F.SurrealMinusOne*S_F.SurrealOne)--yardım
