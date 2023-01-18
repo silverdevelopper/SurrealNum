@@ -1,5 +1,6 @@
 from typing import List
 import math
+from Surreal_num_utils import *
 
 class Surreal_Converter:
     @staticmethod
@@ -12,9 +13,9 @@ class Surreal_Converter:
     @staticmethod
     def convert_int(value: int):
         if value == 0:
-            return S_F.SurrealZero
+            return Surreal_Finite.SurrealZero
         elif value == 1:
-            return S_F.SurrealOne
+            return Surreal_Finite.SurrealOne
         elif value > 1:
             return SurrealShort(str(value), left=[Surreal_Converter.convert_int(value-1)], right=[])
         else:
@@ -29,7 +30,7 @@ class Ordinal:
         if number:
             self.value = number
         else:
-            self.value = S_F.SurrealZero
+            self.value = Surreal_Finite.SurrealZero
 
     def __repr__(self) -> str:
         return str(self.value)
@@ -77,18 +78,22 @@ class SurrealShort:
         # self.is_valid()
         self.h = hash("{self.__repr()__}")
         SurrealShort.count += 1
-        #x=k/2n  (with k odd and n>0), just let xL=(k−1)/2n and xR=(k+1)/2n
+       
     def convert_to_rat(self):
-        if self==S_F.SurrealZero:
+        res = 0
+        if self==Surreal_Finite.SurrealZero:
             return 0
         elif self.right and self.left :
             self.right.sort()
             self.left.sort()
-            return math.sqrt(SurrealShort.convert_to_rat(self.right[0])*SurrealShort.convert_to_rat(self.left[-1]))+1/(2/(SurrealShort.convert_to_rat(self.right[0])-SurrealShort.convert_to_rat(self.left[-1])))
+            res= math.sqrt(SurrealShort.convert_to_rat(self.right[0])*SurrealShort.convert_to_rat(self.left[-1]))
+            +1/(2/(SurrealShort.convert_to_rat(self.right[0])-SurrealShort.convert_to_rat(self.left[-1])))
         elif not self.right:
-            return int(SurrealShort.convert_to_rat(self.left[0])+1)
+            res= int(SurrealShort.convert_to_rat(self.left[0])+1)
         else:
-            return int(SurrealShort.convert_to_rat(self.right[-1])+1)
+            res= int(SurrealShort.convert_to_rat(-self.right[-1])+1)
+        self.name = str(res)
+        return res
 
     def calculate_ordinal(cls, val: 'SurrealShort'):
         raise NotImplementedError
@@ -108,8 +113,12 @@ class SurrealShort:
         return result
 
     def __neg__(self):
-        self.left = [-x for x in self.right]
-        self.right = [-x for x in self.left]
+        if self.left == [] and self.right == []:
+            return self
+        left = [-x for x in self.right]
+        right = [-y for y in self.left]
+        return SurrealShort(left=left, right=right)
+        
     def __sub__ (self,value:'SurrealShort'):
         return self+-value
     def __add__(self, y):
@@ -125,9 +134,9 @@ class SurrealShort:
             The number of legs the animal (default is 4)
         """
         result = None
-        if self == S_F.SurrealZero:
+        if self == Surreal_Finite.SurrealZero:
             result = y
-        elif y == S_F.SurrealZero:
+        elif y == Surreal_Finite.SurrealZero:
             result = self
         elif isinstance(y, int):
             result = self + SurrealShort.convert_int(y)
@@ -143,9 +152,11 @@ class SurrealShort:
         if self and value:
         #return SurrealShort((self.left*value+self*value.left+-self.left*value.left, self.right*value+self*value.right+self*value.right+-self.right*value.right), (self.left*value+self*value.right+-self.left*value.right, self.right*value+self*value.left+-self.right*value.left))
             return SurrealShort([a*value+self*c-a*c for a in self.left for c in value.left].extend([b*value+self*d+self*d-b*d for b in self.right for d in value.right]),[a*value+self*d-a*d for a in self.left for d in value.right].extend([b*value+self*c-b*c for b in self.right for c in value.left]))
-        return S_F.SurrealZero
+        return Surreal_Finite.SurrealZero
     def __div__(self, value: 'SurrealShort'):
         raise NotImplementedError
+    def __str__(self):
+        return self.__repr__()
 
     def __repr__(self):
         if self.name:
@@ -154,16 +165,6 @@ class SurrealShort:
 
     def __eq__(self, y):
         
-        '''if len(self.left) != len(y.left) or len(self.right) != len(y.right):
-            return False
-        for i,_ in enumerate(self.right):
-            if self.right[i] != y.right[i]:
-                return False
-        for i,_ in enumerate(self.left):
-            if self.left[i] != y.left[i]:
-                return False
-        return True'''
-       
         if self <= y and y <= self:
             return True
         return False
@@ -228,7 +229,7 @@ class Zero(SurrealShort):
         self.left = []
         self.right = []
 
-class S_F:
+class Surreal_Finite:
     ϕ = []
     SurrealZero = SurrealShort("0", ϕ, ϕ)
     SurrealOne = SurrealShort("1", [SurrealZero], ϕ)
@@ -244,8 +245,9 @@ class S_F:
       
 class Generator:
     days= {
-        0 : [S_F.SurrealZero]
+        0 : [Surreal_Finite.SurrealZero]
     }
+    edges = []
     @staticmethod
     def generate_day(day: int = 1):
         if day in Generator.days:
@@ -258,10 +260,15 @@ class Generator:
                 l = SurrealShort(left=[s ],right = [ ])
                 r = SurrealShort(left=[],right = [s ])
                 
+                
                 if l.is_valid():
+                    nodes.append((str(Surreal_Finite.SurrealZero),str(l) ) )
+                    l.convert_to_rat()
                     Generator.days[d+1].append(l)
                     
                 if r.is_valid():
+                    nodes.append((str(Surreal_Finite.SurrealZero),str(r) ) )
+                    r.convert_to_rat()
                     Generator.days[d+1].append(r)
                     
                 suureals_until_the_day = []
@@ -272,36 +279,27 @@ class Generator:
                     if j != i:
                         x = SurrealShort(left= [p] ,right = [s] )
                         if x.is_valid():
+                            #x.convert_to_rat()
+                            nodes.append((str(p),str(s)))
                             Generator.days[d+1].append(x)
                             
                         x = SurrealShort(left= [s],right = [p] )
                         if x.is_valid():
+                            #x.convert_to_rat()
+                            nodes.append((str(s),str(p)))
                             Generator.days[d+1].append(x)
+        Generator.edges = nodes
         return Generator.days
-                 
+    
+    @staticmethod
+    def plot_generator():
+        plot_graph(Generator.edges)
+        
     def gen_day(day:int = 0):
         if day == 0:
             return Generator.days
         
-
-# print( Surreal_Converter.convert(-2) ==  S_F.SurrealMinusTwo )
-# print( Surreal_Converter.convert(-1) ==  S_F.SurrealMinusOne )
-# print( S_F.SurrealMinusOne  ==  S_F.SurrealTwo )
-# print( Surreal_Converter.convert(1) <= S_F.SurrealTwo )
-# print( Surreal_Converter.convert(1) >= S_F.SurrealTwo )
-# print( SurrealShort() <= S_F.SurrealZero )
-
-# x = Surreal_Converter.convert(-2)
-# y = S_F.SurrealMinusTwo 
-# print(x.left,x.right)
-# print(y.left,y.right)
-# print(SurrealShort("1", [S_F.SurrealTwo], [S_F.SurrealMinusOne]).is_valid())
-#print(Generator.generate_day(4))
-print( Surreal_Converter.convert(1).convert_to_rat())
-print( S_F.SurrealTwo.convert_to_rat())  
-print( S_F.SurrealMinusOneHalf.convert_to_rat())
-print( S_F.SurrealOneHalf.convert_to_rat())
-print( S_F.Üsreel.is_valid())
-print( S_F.Üsreel + S_F.MinÜsreel)
-print(S_F.SurrealTwo*S_F.SurrealOne)
-#print(S_F.SurrealMinusOne*S_F.SurrealOne)--yardım
+# print( Surreal_Converter.convert(-1).convert_to_rat())
+# #print( Surreal_Converter.convert(-3).convert_to_rat())
+# print(Generator.generate_day(2))
+# Generator.plot_generator()
