@@ -123,6 +123,8 @@ class SurrealShort:
         return self+-value
     def __add__(self, y):
         x = self
+        p=[x + b for b in y.left]
+        c=[x + b for b in y.right]
         if self == S_F.SurrealZero:
             result = y
         elif y == S_F.SurrealZero:
@@ -130,8 +132,8 @@ class SurrealShort:
         elif isinstance(y, int):
             result = self + SurrealShort.convert_int(y)
         else:
-            result = SurrealShort([y + a for a in x.left].extend([x + b for b in y.left]), 
-                                  [y + a for a in x.right].extend([x + b for b in y.right]))
+            result = SurrealShort([y + a for a in x.left].extend(p), 
+                                  [y + a for a in x.right].extend(c))
         return result
 
     def shorten(self):
@@ -365,3 +367,7 @@ print(S_F.Üsreel*S_F.MinÜsreel)
 print(S_F.SurrealOne*S_F.SurrealTwo)
 print(S_F.Üsreel+S_F.MinÜsreel)
 #print(S_F.SurrealMinusOne*S_F.SurrealOne)--yardım
+x = Surreal_Converter.convert(1)
+y = S_F.SurrealTwo 
+print(x+y)
+print(Generator.üsr_day())
