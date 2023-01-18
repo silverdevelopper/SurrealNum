@@ -84,12 +84,19 @@ class SurrealShort:
         elif self.right and self.left :
             self.right.sort()
             self.left.sort()
-            return math.sqrt(SurrealShort.convert_to_rat(self.right[0])*SurrealShort.convert_to_rat(self.left[-1]))+1/(2/(SurrealShort.convert_to_rat(self.right[0])-SurrealShort.convert_to_rat(self.left[-1])))
+            k=SurrealShort.convert_to_rat(self.right[0])*SurrealShort.convert_to_rat(self.left[-1])
+            v=SurrealShort.convert_to_rat(self.right[0])-SurrealShort.convert_to_rat(self.left[-1])
+            if v !=0:
+                if k >= 0:
+                    return abs(math.sqrt(k)+1/(2/v)) if self>S_F.SurrealZero else -abs(math.sqrt(k)+1/(2/v))
+                else:
+                    return abs(math.sqrt(-k)+1/(2/v)) if self >S_F.SurrealZero else -abs(math.sqrt(-k)+1/(2/v))
+            else:
+                return 0
         elif not self.right:
             return int(SurrealShort.convert_to_rat(self.left[0])+1)
-        else:
-            return int(SurrealShort.convert_to_rat(self.right[-1])+1)
-
+        elif not self.left:
+            return -int(SurrealShort.convert_to_rat(self.right[-1])+1)
     def calculate_ordinal(cls, val: 'SurrealShort'):
         raise NotImplementedError
 
@@ -221,12 +228,6 @@ class SurrealShort:
     
     def __ge__(self,y):
         return not(self < y)
-
-class Zero(SurrealShort):
-    def __init__(self):
-        self.left = []
-        self.right = []
-
 class S_F:
     ϕ = []
     SurrealZero = SurrealShort("0", ϕ, ϕ)
@@ -330,10 +331,10 @@ print(SurrealShort("1", [S_F.SurrealTwo], [S_F.SurrealMinusOne]).is_valid())
 #print(Generator.generate_day(4))
 print( Surreal_Converter.convert(1).convert_to_rat())
 print( S_F.SurrealTwo.convert_to_rat())  
-print( S_F.SurrealMinusOneHalf.convert_to_rat())
+print( S_F.SurrealMinusOneHalf.convert_to_rat(), S_F.SurrealMinusOne.convert_to_rat())
 print( S_F.SurrealOneHalf.convert_to_rat())
 print( S_F.Üsreel.is_valid())
 print( S_F.Üsreel + S_F.MinÜsreel)
 #print(S_F.SurrealTwo*S_F.SurrealOne)
-print(Generator.sür_day(3))
+print(Generator.sür_day())
 #print(S_F.SurrealMinusOne*S_F.SurrealOne)--yardım
