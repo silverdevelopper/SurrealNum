@@ -16,9 +16,9 @@ class Surreal_Converter:
         elif value == 1:
             return S_F.SurrealOne
         elif value > 1:
-            return SurrealShort(str(value), left=[Surreal_Converter.convert_int(value-1)], right=[])
+            return SurrealShort( left=[Surreal_Converter.convert_int(value-1)], right=[], name=str(value))
         else:
-            return SurrealShort(str(value),left=[],right=[Surreal_Converter.convert_int(value+1)])
+            return SurrealShort(left=[],right=[Surreal_Converter.convert_int(value+1)], name=str(value))
 
     def convert_float(cls, value: float):
         return NotImplementedError
@@ -62,7 +62,7 @@ class SurrealShort:
     count = 0
     ϕ = []
 
-    def __init__(self, name: str = None, left: list = [], right: list = []):
+    def __init__(self, left: list = [], right: list = [],name: str = None):
         #self.name = name if name else self.convert_to_rat
         self.name = name
         if (isinstance(left, list) and left != SurrealShort.ϕ) or isinstance(left, SurrealShort):
@@ -123,22 +123,32 @@ class SurrealShort:
         return self+-value
     def __add__(self, y):
         x = self
-        p=[x + b for b in y.left]
-        c=[x + b for b in y.right]
-        if self == S_F.SurrealZero:
+        if x == S_F.SurrealZero:
             result = y
-        elif y == S_F.SurrealZero:
-            result = self
         elif isinstance(y, int):
-            result = self + SurrealShort.convert_int(y)
+            result = x + Surreal_Converter.convert_int(y)
+        elif y == S_F.SurrealZero:
+            result = x
         else:
-            result = SurrealShort([y + a for a in x.left].extend(p), 
-                                  [y + a for a in x.right].extend(c))
+            p=[x + b for b in y.left]
+            c=[x + b for b in y.right]
+            s=[y + a for a in x.left]
+            ş=[y + a for a in x.right]
+            #s.extend(p)
+            #ş.extend(c)
+            result = SurrealShort(s+p, 
+                                  ş+c)
         return result
-
     def shorten(self):
-        raise NotImplementedError
-
+        for y in self.left:
+            for x in self.left:
+                if y==x:
+                    self.left.remove(y)
+        for y in self.right:
+            for x in self.right:
+                if y==x:
+                    self.right.remove(y)
+            
     def __mul__(self, value: 'SurrealShort'):
         if self == S_F.SurrealOne:
             return value 
@@ -152,7 +162,7 @@ class SurrealShort:
             return S_F.SurrealZero
         else:
         #return SurrealShort((self.left*value+self*value.left+-self.left*value.left, self.right*value+self*value.right+self*value.right+-self.right*value.right), (self.left*value+self*value.right+-self.left*value.right, self.right*value+self*value.left+-self.right*value.left))
-            return SurrealShort([a*value+self*c-a*c for a in self.left for c in value.left].extend([b*value+self*d+self*d-b*d for b in self.right for d in value.right]),[a*value+self*d-a*d for a in self.left for d in value.right].extend([b*value+self*c-b*c for b in self.right for c in value.left]))
+            return SurrealShort([a*value+self*c-a*c for a in self.left for c in value.left]+[b*value+self*d+self*d-b*d for b in self.right for d in value.right],[a*value+self*d-a*d for a in self.left for d in value.right]+[b*value+self*c-b*c for b in self.right for c in value.left])
     def __div__(self, value: 'SurrealShort'):
         raise NotImplementedError
 
@@ -233,17 +243,17 @@ class SurrealShort:
         return not(self < y)
 class S_F:
     ϕ = []
-    SurrealZero = SurrealShort("0", ϕ, ϕ)
-    SurrealOne = SurrealShort("1", [SurrealZero], ϕ)
-    SurrealMinusOne = SurrealShort("-1", ϕ, [SurrealZero])
-    SurrealTwo = SurrealShort("2", [SurrealOne], ϕ)
-    SurrealThree = SurrealShort("3", [SurrealTwo], ϕ)
-    SurrealMinusTwo = SurrealShort("-2", ϕ, [SurrealMinusOne])
-    SurrealMinusThree = SurrealShort("-3", ϕ, [SurrealMinusTwo])
-    SurrealOneHalf=SurrealShort("1/2",[SurrealZero],[SurrealOne])
-    SurrealMinusOneHalf=SurrealShort("1/2",[SurrealMinusOne],[SurrealZero])
-    Üsreel=SurrealShort("666",[SurrealOne],[SurrealZero])
-    MinÜsreel=SurrealShort("999",[SurrealZero],[SurrealMinusOne])
+    SurrealZero = SurrealShort( ϕ, ϕ,"0")
+    SurrealOne = SurrealShort( [SurrealZero], ϕ, "0")
+    SurrealMinusOne = SurrealShort( ϕ, [SurrealZero],"-1")
+    SurrealTwo = SurrealShort( [SurrealOne], ϕ,"2")
+    SurrealThree = SurrealShort( [SurrealTwo], ϕ,"3")
+    SurrealMinusTwo = SurrealShort( ϕ, [SurrealMinusOne],"-2")
+    SurrealMinusThree = SurrealShort( ϕ, [SurrealMinusTwo],"-3")
+    SurrealOneHalf=SurrealShort([SurrealZero],[SurrealOne],"1/2")
+    SurrealMinusOneHalf=SurrealShort([SurrealMinusOne],[SurrealZero],"-1/2")
+    Üsreel=SurrealShort([SurrealOne],[SurrealZero],"666")
+    MinÜsreel=SurrealShort([SurrealZero],[SurrealMinusOne],"999")
       
 class Generator:
     days= {
@@ -341,33 +351,47 @@ class Generator:
             return Generator.days
         
 
-print( Surreal_Converter.convert(-2) <= S_F.SurrealMinusTwo )
-print( Surreal_Converter.convert(-1) ==  S_F.SurrealMinusOne )
-# print( S_F.SurrealMinusOne  ==  S_F.SurrealTwo )
-# print( Surreal_Converter.convert(1) <= S_F.SurrealTwo )
-# print( Surreal_Converter.convert(1) >= S_F.SurrealTwo )
-# print( SurrealShort() <= S_F.SurrealZero )
-
-# x = Surreal_Converter.convert(-2)
-# y = S_F.SurrealMinusTwo 
-# print(x.left,x.right)
-# print(y.left,y.right)
-print(SurrealShort("1", [S_F.SurrealTwo], [S_F.SurrealMinusOne]).is_valid())
+#print( Surreal_Converter.convert(-2) <= S_F.SurrealMinusTwo )
+#print( Surreal_Converter.convert(-1) ==  S_F.SurrealMinusOne )
+#print( S_F.SurrealMinusOne  ==  S_F.SurrealTwo )
+#print( Surreal_Converter.convert(1) <= S_F.SurrealTwo )
+#print( Surreal_Converter.convert(1) >= S_F.SurrealTwo )
+#print( SurrealShort() <= S_F.SurrealZero )
+#x = Surreal_Converter.convert(-2)
+#y = S_F.SurrealMinusTwo 
+#print(x.left,x.right)
+#print(y.left,y.right)
+#print(SurrealShort("1", [S_F.SurrealTwo], [S_F.SurrealMinusOne]).is_valid())
 #print(Generator.generate_day(4))
-print( Surreal_Converter.convert(1).convert_to_rat())
-print( S_F.SurrealTwo.convert_to_rat())  
-print( S_F.SurrealMinusOneHalf.convert_to_rat(), S_F.SurrealMinusOne.convert_to_rat())
-print( S_F.SurrealOneHalf.convert_to_rat())
-print( S_F.Üsreel.is_valid())
-print( S_F.Üsreel + S_F.MinÜsreel)
+#print( Surreal_Converter.convert(1).convert_to_rat())
+#print( S_F.SurrealTwo.convert_to_rat())  
+#print( S_F.SurrealMinusOneHalf.convert_to_rat(), S_F.SurrealMinusOne.convert_to_rat())
+#print( S_F.SurrealOneHalf.convert_to_rat())
+#print( S_F.Üsreel.is_valid())
+#print( S_F.Üsreel + S_F.MinÜsreel)
 #print(S_F.SurrealTwo*S_F.SurrealOne)
 #print(Generator.üsr_day())
 #print(Generator.generate_day(3))
-print(S_F.Üsreel*S_F.MinÜsreel)
-print(S_F.SurrealOne*S_F.SurrealTwo)
-print(S_F.Üsreel+S_F.MinÜsreel)
-#print(S_F.SurrealMinusOne*S_F.SurrealOne)--yardım
+#print(S_F.Üsreel*S_F.MinÜsreel)
+#print(S_F.SurrealOne*S_F.SurrealTwo)
+#print(S_F.Üsreel+S_F.MinÜsreel)
+#print(S_F.SurrealMinusOne*S_F.SurrealOne)
 x = Surreal_Converter.convert(1)
-y = S_F.SurrealTwo 
-print(x+y)
-print(Generator.üsr_day())
+y = S_F.SurrealThree
+x+=5
+print(x)
+x.shorten()
+print(x)
+print(x.convert_to_rat())
+print(S_F.MinÜsreel*S_F.MinÜsreel)
+lines = [str(Generator.üsr_day(0)).replace(',','\n')]
+with open('readme.txt', 'w') as f:
+    for line in lines:
+        f.write(line)
+        f.write('\n')
+lines = [str(Generator.generate_day(0)).replace(',','\n')]
+with open('readme.txt', 'w') as f:
+    for line in lines:
+        f.write(line)
+        f.write('\n')
+
