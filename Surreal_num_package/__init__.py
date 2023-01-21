@@ -1,1 +1,1 @@
-from Surreal_num import *
+from .Surreal_num import * #bunu hiç görmüyor

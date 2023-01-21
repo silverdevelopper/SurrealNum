@@ -1,1 +1,1 @@
-from .Surreal_num import SurrealShort,S_F,Surreal_Converter
+from .Surreal_num import SurrealShort,Surreal_Finite,Surreal_Converter
